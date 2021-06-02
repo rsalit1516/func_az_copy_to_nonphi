@@ -1,0 +1,15 @@
+{
+  "scriptFile": "__init__.py",
+  "version": "2.0",
+    "extensionBundle": {
+        "id": "Microsoft.Azure.Functions.ExtensionBundle",
+        "version": "[2.*, 3.0.0)"
+    },
+  "bindings": [
+    {
+      "name": "PatientId",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+  ]
+}

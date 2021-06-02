@@ -1,0 +1,29 @@
+{
+  "azureFunctions.deploySubpath": ".",
+  "azureFunctions.scmDoBuildDuringDeployment": true,
+  "azureFunctions.pythonVenv": ".venv",
+  "azureFunctions.projectLanguage": "Python",
+  "azureFunctions.projectRuntime": "~3",
+  "debug.internalConsoleOptions": "neverOpen",
+  "python.testing.promptToConfigure": false,
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": false,
+  "python.testing.nosetestsEnabled": false,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#52a689",
+    "activityBar.activeBorder": "#e2d4ea",
+    "activityBar.background": "#52a689",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#e2d4ea",
+    "activityBarBadge.foreground": "#15202b",
+    "statusBar.background": "#41846d",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#52a689",
+    "titleBar.activeBackground": "#41846d",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#41846d99",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#41846d"
+}
