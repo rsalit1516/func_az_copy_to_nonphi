@@ -32,6 +32,25 @@ TARGET_DTYPES = {'WornState': bool,
                  'AppTimestamp': np.int64,
                  'UtcOffSet': str}
 
+JSON_OBJECTS_TO_REMOVE = ["MobileTimestampUtc","_ApiProcessed","_FunctionProcessed", "UtcOffset"]      
+
+def process_telemetry_doc (doc, time_lag):
+
+    assert time_lag != 0
+    logging.info(f"Timestamp of current document is {doc['MobileTimestampUtc']}")
+
+    if "1/1/0001" not in doc['MobileTimestampUtc']:
+        cur_Timestamp = (pd.to_datetime(doc["MobileTimestampUtc"], errors="coerce") + pd.Timedelta(time_lag,unit='day'))
+        doc["FakeMobileTimestampUtc"] = cur_Timestamp.strftime('%Y%m%dT%H%M%S')
+    else:
+        doc["FakeMobileTimestampUtc"] = "Invalid"
+
+    # remove keys marked up for removal
+    cleaned_doc = {k: v for k,v in doc.items() if k not in JSON_OBJECTS_TO_REMOVE} 
+
+    return cleaned_doc
+
+
 def main(PatientId: str) -> str:
 
     # get database connetion parameters from Azure function configuration
@@ -52,7 +71,7 @@ def main(PatientId: str) -> str:
     COLLECTION = os.getenv("MONGODB_TELEMETRY_COLLECTION")
     USERNAME = os.getenv("MONGODB_USERNAME")
     PASSWORD = os.getenv("MONGODB_PASSWORD")
- 
+
     # Connect to MongoDB
     args = "ssl=true&retrywrites=false&ssl_cert_reqs=CERT_NONE"
     connection_uri = f"mongodb://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE_NAME}?{args}"
@@ -81,7 +100,7 @@ def main(PatientId: str) -> str:
     
     found_counter, copied_counter = 0, 0
     start_time = time.time()
-    collection_query = {"PatientId":PatientId}
+    collection_query = {"PatientId": PatientId}
     for doc in collection.find(collection_query):
         found_counter += 1
         output_filename = f"{COLLECTION}/{doc['_id']}.json"
@@ -91,14 +110,12 @@ def main(PatientId: str) -> str:
         
         if not output_file_exists:
 
-            assert time_lag != 0
-            cur_Timestamp = (pd.to_datetime(doc["MobileTimestampUtc"]) + pd.Timedelta(time_lag,unit='day'))
-            doc["FakeMobileTimestampUtc"] = cur_Timestamp.strftime('%Y%m%dT%H%M%S')
-            _ = doc.pop("MobileTimestampUtc")
+            logging.info(f"processing telemetry doc with _id: {doc['_id']}")
+            cleaned_doc = process_telemetry_doc (doc, time_lag)
 
-            output_json = json.dumps(doc)
+            output_json = json.dumps(cleaned_doc)
             content_length = len(output_json)
-            
+             
             logging.info(f"Writing file '{output_filename}' ({content_length})")
             file_client = directory_client.create_file(output_filename)
             file_client.upload_data(data=output_json, length=content_length, overwrite=True)

@@ -32,6 +32,8 @@ TARGET_DTYPES = {'WornState': bool,
                  'AppTimestamp': np.int64,
                  'UtcOffSet': str}
 
+JSON_OBJECTS_TO_REMOVE = ["Timestamp","_ApiProcessed","_FunctionProcessed", "UtcOffset"]
+
 def main(PatientId: str) -> str:
 
     # get database connetion parameters from Azure function configuration
@@ -49,9 +51,11 @@ def main(PatientId: str) -> str:
     # Get MongoDb connection parameters
     HOST = os.getenv("MONGODB_HOST")
     DATABASE_NAME = os.getenv("MONGODB_DATABASE")
-    COLLECTION = os.getenv("MONGODB_GAIT_COLLECTION")
+    COLLECTION = os.getenv("MONGODB_TELEMETRY_COLLECTION")
     USERNAME = os.getenv("MONGODB_USERNAME")
     PASSWORD = os.getenv("MONGODB_PASSWORD")
+
+
  
     # Connect to MongoDB
     args = "ssl=true&retrywrites=false&ssl_cert_reqs=CERT_NONE"
@@ -94,9 +98,11 @@ def main(PatientId: str) -> str:
             assert time_lag != 0
             cur_Timestamp = (pd.to_datetime(doc["Timestamp"]) + pd.Timedelta(time_lag,unit='day'))
             doc["FakeTimestamp"] = cur_Timestamp.strftime('%Y%m%dT%H%M%S')
-            _ = doc.pop("Timestamp")
 
-            output_json = json.dumps(doc)
+            # remove keys marked up for removal
+            cleaned_doc = {k: v for k,v in doc.items() if k not in JSON_OBJECTS_TO_REMOVE} 
+
+            output_json = json.dumps(cleaned_doc)
             content_length = len(output_json)
             
             logging.info(f"Writing file '{output_filename}' ({content_length})")

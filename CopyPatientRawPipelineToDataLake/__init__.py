@@ -33,6 +33,8 @@ TARGET_DTYPES = {'WornState': bool,
                  'AppTimestamp': np.int64,
                  'UtcOffSet': str}
 
+JSON_OBJECTS_TO_REMOVE = ["_ApiProcessed","_FunctionProcessed", "UtcOffset"]
+
 def main(PatientId: str) -> str:
 
     # get database connetion parameters from Azure function configuration
@@ -53,6 +55,8 @@ def main(PatientId: str) -> str:
     USERNAME = os.getenv("MONGODB_USERNAME")
     PASSWORD = os.getenv("MONGODB_PASSWORD")
     HOST = os.getenv("MONGODB_HOST")
+
+    
  
     # Connect to MongoDB
     args = "ssl=true&retrywrites=false&ssl_cert_reqs=CERT_NONE"
@@ -110,8 +114,11 @@ def main(PatientId: str) -> str:
             samples_df = samples_df.drop(columns=["UtcOffSet"])
             
             doc["DataSamples"] = samples_df.to_dict("records")
+
+            # remove keys marked up for removal
+            cleaned_doc = {k: v for k,v in doc.items() if k not in JSON_OBJECTS_TO_REMOVE} 
         
-            output_json = json.dumps(doc)
+            output_json = json.dumps(cleaned_doc)
             content_length = len(output_json)
             
             logging.info(f"Writing file '{output_filename}' ({content_length})")
