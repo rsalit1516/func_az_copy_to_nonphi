@@ -51,7 +51,7 @@ def main(PatientId: str) -> str:
     # Get MongoDb connection parameters
     HOST = os.getenv("MONGODB_HOST")
     DATABASE_NAME = os.getenv("MONGODB_DATABASE")
-    COLLECTION = os.getenv("MONGODB_TELEMETRY_COLLECTION")
+    COLLECTION = os.getenv("MONGODB_GAIT_COLLECTION")
     USERNAME = os.getenv("MONGODB_USERNAME")
     PASSWORD = os.getenv("MONGODB_PASSWORD")
 
@@ -89,13 +89,16 @@ def main(PatientId: str) -> str:
     for doc in collection.find(collection_query):
         found_counter += 1
         output_filename = f"{COLLECTION}/{doc['_id']}.json"
-
+        
         #if not force_copy & output_file_exists
         output_file_exists = directory_client.get_file_client(output_filename).exists()
         
         if not output_file_exists:
 
             assert time_lag != 0
+            if not "Timestamp" in doc.keys():
+                logging.error(f"Can't find 'Timestamp' field in doc with _id={doc['_id']} - will fail now!!")
+                
             cur_Timestamp = (pd.to_datetime(doc["Timestamp"]) + pd.Timedelta(time_lag,unit='day'))
             doc["FakeTimestamp"] = cur_Timestamp.strftime('%Y%m%dT%H%M%S')
 

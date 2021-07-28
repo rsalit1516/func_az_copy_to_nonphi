@@ -9,8 +9,15 @@
 import os
 import sys
 import time
+<<<<<<< HEAD
+
 import json
 import logging
+import datetime
+=======
+import json
+import logging
+>>>>>>> a820e016b8678e5e59df98ce9ad2b4c8af43afc7
 
 import pyodbc
 import numpy as np
@@ -33,6 +40,10 @@ TARGET_DTYPES = {'WornState': bool,
                  'UtcOffSet': str}
 
 JSON_OBJECTS_TO_REMOVE = ["MobileTimestampUtc","_ApiProcessed","_FunctionProcessed", "UtcOffset"]      
+<<<<<<< HEAD
+LOOK_X_HOURS_BEFORE = 24
+=======
+>>>>>>> a820e016b8678e5e59df98ce9ad2b4c8af43afc7
 
 def process_telemetry_doc (doc, time_lag):
 
@@ -72,6 +83,11 @@ def main(PatientId: str) -> str:
     USERNAME = os.getenv("MONGODB_USERNAME")
     PASSWORD = os.getenv("MONGODB_PASSWORD")
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> a820e016b8678e5e59df98ce9ad2b4c8af43afc7
     # Connect to MongoDB
     args = "ssl=true&retrywrites=false&ssl_cert_reqs=CERT_NONE"
     connection_uri = f"mongodb://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE_NAME}?{args}"
@@ -100,7 +116,16 @@ def main(PatientId: str) -> str:
     
     found_counter, copied_counter = 0, 0
     start_time = time.time()
+<<<<<<< HEAD
+
+    # restrict queried documents to those having '_FunctionProcessed' dates later than this threshold:
+    time_after = datetime.datetime.now() - datetime.timedelta(hours=LOOK_X_HOURS_BEFORE)
+    collection_query = {"PatientId":PatientId,"_FunctionProcessed": {"$gte": time_after}}
+    logging.info(f"Querying documents for PatientId {PatientId} processed after {time_after.strftime(format='%Y-%m-%d %H:%M:%S')}")
+
+=======
     collection_query = {"PatientId": PatientId}
+>>>>>>> a820e016b8678e5e59df98ce9ad2b4c8af43afc7
     for doc in collection.find(collection_query):
         found_counter += 1
         output_filename = f"{COLLECTION}/{doc['_id']}.json"
@@ -125,10 +150,19 @@ def main(PatientId: str) -> str:
             file_client.close()
 
     elapsed_time = time.time() - start_time
+<<<<<<< HEAD
+    result = db.command({"getLastRequestStatistics": 1})
+
+=======
+>>>>>>> a820e016b8678e5e59df98ce9ad2b4c8af43afc7
     
     directory_client.close()
     file_system_client.close()
 
+<<<<<<< HEAD
+    func_output = f"{copied_counter}/{found_counter} copied/found telemetry documents from PatientId = '{PatientId}' in {elapsed_time/60} minutes consuming {result['RequestCharge']} RUs)"
+=======
     func_output = f"{copied_counter}/{found_counter} copied/found telemetry documents from PatientId = '{PatientId}' in {elapsed_time/60} minutes)"
+>>>>>>> a820e016b8678e5e59df98ce9ad2b4c8af43afc7
 
     return json.dumps({"body": func_output})
